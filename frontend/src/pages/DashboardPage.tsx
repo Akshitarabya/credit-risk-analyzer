@@ -1,27 +1,11 @@
-import { CalendarClock, Mail, ShieldCheck } from "lucide-react";
+import { CalendarClock, FilePlus2, ListChecks, Mail, ShieldCheck } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { useAuth } from "@/auth/AuthContext";
 import AppShell from "@/components/layout/AppShell";
 import Badge from "@/components/ui/Badge";
+import Button from "@/components/ui/Button";
 import Card from "@/components/ui/Card";
-
-const roleCopy: Record<string, { headline: string; description: string }> = {
-  applicant: {
-    headline: "Ready to apply for a loan?",
-    description:
-      "Once loan applications go live, you'll be able to submit one here and see your risk-scored decision, with a clear explanation of what drove it.",
-  },
-  staff: {
-    headline: "Your review queue will live here.",
-    description:
-      "Once the scoring pipeline is connected, you'll see every submitted application here, sorted by risk band, ready for review.",
-  },
-  admin: {
-    headline: "Portfolio analytics will live here.",
-    description:
-      "Once applications start flowing through, this is where you'll track approval rates and portfolio-wide risk distribution.",
-  },
-};
 
 function formatMemberSince(isoDate: string): string {
   return new Date(isoDate).toLocaleDateString(undefined, {
@@ -35,8 +19,6 @@ export default function DashboardPage() {
 
   if (!user) return null;
 
-  const copy = roleCopy[user.role] ?? roleCopy.applicant;
-
   return (
     <AppShell>
       <div className="mb-8">
@@ -48,14 +30,49 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <h2 className="font-display text-lg font-semibold text-ink">{copy.headline}</h2>
-          <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">{copy.description}</p>
-          <div className="mt-6 rounded-xl border border-dashed border-line bg-canvas px-4 py-6 text-center">
-            <p className="text-sm text-muted">
-              This module ships in the next build phase — this is the account
-              foundation the rest of the product is built on top of.
-            </p>
-          </div>
+          {user.role === "applicant" ? (
+            <>
+              <h2 className="font-display text-lg font-semibold text-ink">
+                Ready to apply for a loan?
+              </h2>
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
+                Tell us about your finances and what you need the loan for. You can track
+                every application you submit from one place.
+              </p>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <Link to="/apply">
+                  <Button>
+                    <FilePlus2 className="h-4 w-4" aria-hidden="true" />
+                    Apply for a loan
+                  </Button>
+                </Link>
+                <Link to="/applications">
+                  <Button variant="secondary">
+                    <ListChecks className="h-4 w-4" aria-hidden="true" />
+                    View my applications
+                  </Button>
+                </Link>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="font-display text-lg font-semibold text-ink">
+                Applications are waiting for review.
+              </h2>
+              <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
+                Every application submitted across the platform shows up in the queue,
+                filterable by status.
+              </p>
+              <div className="mt-6">
+                <Link to="/staff/applications">
+                  <Button>
+                    <ListChecks className="h-4 w-4" aria-hidden="true" />
+                    Open application queue
+                  </Button>
+                </Link>
+              </div>
+            </>
+          )}
         </Card>
 
         <Card>
