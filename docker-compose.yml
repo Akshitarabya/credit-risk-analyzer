@@ -1,0 +1,24 @@
+# Local development convenience only: a single Postgres container.
+# The backend and frontend are run directly with uvicorn / npm run dev.
+# There is deliberately no other service here (no cache, no queue, no broker).
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: credit_risk_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: credit_user
+      POSTGRES_PASSWORD: credit_pass
+      POSTGRES_DB: credit_risk_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - credit_risk_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U credit_user -d credit_risk_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  credit_risk_pg_data:

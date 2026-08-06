@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply bg-canvas text-ink font-body;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display text-ink;
+  }
+
+  /* Visible keyboard focus everywhere — not decorative, this is required
+     for the app to actually be usable via keyboard. */
+  :focus-visible {
+    outline: 2px solid theme("colors.navy.DEFAULT");
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background-color: theme("colors.teal.soft");
+    color: theme("colors.ink.DEFAULT");
+  }
+}
+
+@layer utilities {
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+}
