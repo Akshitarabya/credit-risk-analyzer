@@ -3,6 +3,7 @@ import type {
   LoanApplication,
   LoanApplicationDetail,
   LoanApplicationSubmission,
+  LoanPrediction,
   LoanStatus,
 } from "@/types/loan";
 
@@ -20,6 +21,11 @@ export async function fetchMyLoanApplications(): Promise<LoanApplication[]> {
 
 export async function fetchLoanApplication(id: string): Promise<LoanApplicationDetail> {
   const { data } = await apiClient.get<LoanApplicationDetail>(`/loans/${id}`);
+  return data;
+}
+
+export async function fetchLoanPrediction(id: string): Promise<LoanPrediction> {
+  const { data } = await apiClient.get<LoanPrediction>(`/loans/${id}/prediction`);
   return data;
 }
 

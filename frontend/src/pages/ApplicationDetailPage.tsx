@@ -6,6 +6,7 @@ import { fetchLoanApplication } from "@/api/loans";
 import { useAuth } from "@/auth/AuthContext";
 import AppShell from "@/components/layout/AppShell";
 import LoanStatusBadge from "@/components/loans/LoanStatusBadge";
+import RiskAssessmentCard from "@/components/loans/RiskAssessmentCard";
 import Alert from "@/components/ui/Alert";
 import Card from "@/components/ui/Card";
 import { getErrorMessage } from "@/utils/errors";
@@ -89,6 +90,19 @@ export default function ApplicationDetailPage() {
               </div>
             </Card>
 
+            {application.risk_score !== null &&
+              application.risk_category !== null &&
+              application.recommendation !== null && (
+                <div className="mt-6">
+                  <RiskAssessmentCard
+                    riskScore={application.risk_score}
+                    riskCategory={application.risk_category}
+                    recommendation={application.recommendation}
+                    topRiskFactors={application.top_risk_factors}
+                  />
+                </div>
+              )}
+
             <Card className="mt-6">
               <h2 className="font-display text-base font-semibold text-ink">
                 Applicant profile
@@ -115,11 +129,10 @@ export default function ApplicationDetailPage() {
               </div>
             </Card>
 
-            {application.status === "submitted" && (
+            {application.risk_score === null && (
               <div className="mt-6 rounded-xl border border-dashed border-line bg-canvas px-4 py-6 text-center">
                 <p className="text-sm text-muted">
-                  This application hasn't been scored yet — risk scoring and a decision arrive
-                  in the next build phase.
+                  This application hasn't been scored yet.
                 </p>
               </div>
             )}
