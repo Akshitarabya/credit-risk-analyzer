@@ -1,0 +1,36 @@
+{
+  "model_version": "gbc_v1_2026",
+  "feature_columns": [
+    "annual_income",
+    "existing_debt",
+    "credit_history_years",
+    "loan_amount",
+    "loan_tenure_months",
+    "debt_to_income",
+    "loan_to_income",
+    "employment_employed",
+    "employment_self_employed",
+    "employment_student",
+    "employment_unemployed",
+    "purpose_personal",
+    "purpose_auto",
+    "purpose_education",
+    "purpose_business",
+    "purpose_home"
+  ],
+  "employment_statuses": [
+    "employed",
+    "self_employed",
+    "unemployed",
+    "student"
+  ],
+  "loan_purposes": [
+    "personal",
+    "auto",
+    "education",
+    "business",
+    "home"
+  ],
+  "test_auc_roc": 0.7716,
+  "training_samples": 6400
+}

@@ -8,6 +8,7 @@ from app.models.user import User, UserRole
 from app.schemas.applicant import ApplicantProfileUpsert
 from app.schemas.loan import LoanApplicationCreate
 from app.services.applicant_service import upsert_applicant_profile
+from app.services.scoring_service import score_loan_application
 
 
 class LoanApplicationNotFoundError(Exception):
@@ -20,9 +21,10 @@ class LoanApplicationAccessDeniedError(Exception):
 
 def create_loan_application(db: Session, user: User, payload: LoanApplicationCreate) -> LoanApplication:
     """
-    Upserts the applicant's financial profile and creates a new loan
-    application in one transaction — this backs the single-page
-    "financial profile + loan details" application form.
+    Upserts the applicant's financial profile, creates a new loan
+    application, and immediately scores it — this backs the single-page
+    "financial profile + loan details" application form and means the
+    applicant sees their risk assessment without a second round trip.
     """
     profile_payload = ApplicantProfileUpsert(**payload.model_dump(exclude={
         "loan_amount", "loan_purpose", "loan_tenure_months",
@@ -39,6 +41,8 @@ def create_loan_application(db: Session, user: User, payload: LoanApplicationCre
     db.add(loan_application)
     db.commit()
     db.refresh(loan_application)
+
+    loan_application = score_loan_application(db, loan_application, applicant)
     return loan_application
 
 

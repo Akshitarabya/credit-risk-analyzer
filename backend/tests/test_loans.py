@@ -33,7 +33,10 @@ def test_submit_loan_application_creates_profile_and_loan(client):
     body = response.json()
     assert body["loan_amount"] == 15000
     assert body["loan_purpose"] == "auto"
-    assert body["status"] == "submitted"
+    # Module 3 note: scoring now runs synchronously at creation time, so the
+    # application is already past "submitted" by the time this responds.
+    # Risk prediction correctness itself is covered in test_scoring.py.
+    assert body["status"] == "scored"
 
     profile_response = client.get("/api/v1/applicants/me", headers=headers)
     assert profile_response.status_code == 200

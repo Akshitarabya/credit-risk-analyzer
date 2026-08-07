@@ -3,8 +3,9 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models.loan_application import LoanPurpose, LoanStatus
+from app.models.loan_application import LoanPurpose, LoanStatus, Recommendation, RiskCategory
 from app.schemas.applicant import ApplicantProfileOut, ApplicantProfileUpsert
+from app.schemas.prediction import RiskFactor
 
 MAX_TENURE_MONTHS = 360  # 30 years — generous upper bound, still a sanity limit
 
@@ -29,7 +30,16 @@ class LoanApplicationOut(BaseModel):
     status: LoanStatus
     submitted_at: datetime
 
-    model_config = ConfigDict(from_attributes=True)
+    # Risk prediction fields (Module 3) — nullable because they're populated
+    # by the scoring service immediately after creation, not by the client.
+    risk_score: int | None = None
+    risk_category: RiskCategory | None = None
+    recommendation: Recommendation | None = None
+    prediction_timestamp: datetime | None = None
+    model_version: str | None = None
+    top_risk_factors: list[RiskFactor] | None = None
+
+    model_config = ConfigDict(from_attributes=True, protected_namespaces=())
 
 
 class LoanApplicationDetailOut(LoanApplicationOut):

@@ -4,13 +4,18 @@ Loan application model.
 One applicant can have multiple loan applications over time (e.g. they pay
 one off and apply again), so this is a many-to-one relationship back to
 `applicants`, not folded into that table.
+
+Risk prediction fields (added in Module 3) are nullable because they're
+populated immediately after creation by the scoring service, not supplied
+by the client — a freshly-inserted row exists, briefly, before scoring runs.
 """
 import enum
 import uuid
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Integer, Numeric
+from sqlalchemy import DateTime, Enum, ForeignKey, Integer, Numeric, String
+from sqlalchemy import JSON
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -31,6 +36,18 @@ class LoanStatus(str, enum.Enum):
     APPROVED = "approved"
     REJECTED = "rejected"
     MANUAL_REVIEW = "manual_review"
+
+
+class RiskCategory(str, enum.Enum):
+    LOW = "low"
+    MEDIUM = "medium"
+    HIGH = "high"
+
+
+class Recommendation(str, enum.Enum):
+    APPROVED = "approved"
+    REVIEW = "review"
+    REJECT = "reject"
 
 
 class LoanApplication(Base):
@@ -56,6 +73,20 @@ class LoanApplication(Base):
     submitted_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
     )
+
+    # --- Risk prediction fields (Module 3) ---
+    risk_score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    risk_category: Mapped[RiskCategory | None] = mapped_column(
+        Enum(RiskCategory, name="risk_category", native_enum=True), nullable=True
+    )
+    recommendation: Mapped[Recommendation | None] = mapped_column(
+        Enum(Recommendation, name="recommendation", native_enum=True), nullable=True
+    )
+    prediction_timestamp: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    model_version: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    top_risk_factors: Mapped[list | None] = mapped_column(JSON, nullable=True)
 
     applicant: Mapped["Applicant"] = relationship(back_populates="loan_applications")
 
