@@ -1,119 +1,153 @@
-import { CalendarClock, FilePlus2, ListChecks, Mail, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-import { useAuth } from "@/auth/AuthContext";
+import { fetchAllLoanApplications, fetchPendingLoanApplications } from "@/api/loans";
 import AppShell from "@/components/layout/AppShell";
-import Badge from "@/components/ui/Badge";
-import Button from "@/components/ui/Button";
+import LoanStatusBadge from "@/components/loans/LoanStatusBadge";
+import RiskCategoryBadge from "@/components/loans/RiskCategoryBadge";
+import Alert from "@/components/ui/Alert";
 import Card from "@/components/ui/Card";
+import { getErrorMessage } from "@/utils/errors";
+import { formatCurrency, formatDate } from "@/utils/format";
+import { loanPurposeLabels } from "@/utils/labels";
+import type { LoanApplication, LoanStatus } from "@/types/loan";
 
-function formatMemberSince(isoDate: string): string {
-  return new Date(isoDate).toLocaleDateString(undefined, {
-    month: "long",
-    year: "numeric",
-  });
-}
+type QueueFilter = "pending" | "all" | LoanStatus;
 
-export default function DashboardPage() {
-  const { user } = useAuth();
+const STATUS_FILTERS: { value: QueueFilter; label: string }[] = [
+  { value: "pending", label: "Pending review" },
+  { value: "all", label: "All" },
+  { value: "submitted", label: "Submitted" },
+  { value: "scored", label: "Scored" },
+  { value: "manual_review", label: "In review" },
+  { value: "approved", label: "Approved" },
+  { value: "rejected", label: "Rejected" },
+];
 
-  if (!user) return null;
+const RECOMMENDATION_LABELS: Record<string, string> = {
+  approved: "Approve",
+  review: "Review",
+  reject: "Reject",
+};
+
+export default function StaffDashboardPage() {
+  const [applications, setApplications] = useState<LoanApplication[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  // Defaults to the pending queue — the actionable work list — rather than
+  // the full unfiltered history, matching how a review queue is normally
+  // expected to open.
+  const [queueFilter, setQueueFilter] = useState<QueueFilter>("pending");
+
+  useEffect(() => {
+    setApplications(null);
+    setError(null);
+    const request =
+      queueFilter === "pending"
+        ? fetchPendingLoanApplications()
+        : fetchAllLoanApplications(queueFilter === "all" ? undefined : queueFilter);
+
+    request
+      .then(setApplications)
+      .catch((err) => setError(getErrorMessage(err, "Could not load applications.")));
+  }, [queueFilter]);
 
   return (
     <AppShell>
       <div className="mb-8">
         <p className="text-sm font-semibold uppercase tracking-[0.15em] text-teal">
-          Welcome back
+          Underwriting
         </p>
-        <h1 className="mt-1.5 text-3xl font-semibold tracking-tight">{user.full_name}</h1>
+        <h1 className="mt-1.5 text-3xl font-semibold tracking-tight">Application queue</h1>
+        <p className="mt-2 text-sm text-muted">
+          Every loan application submitted across the platform.
+        </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          {user.role === "applicant" ? (
-            <>
-              <h2 className="font-display text-lg font-semibold text-ink">
-                Ready to apply for a loan?
-              </h2>
-              <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
-                Tell us about your finances and what you need the loan for. You can track
-                every application you submit from one place.
-              </p>
-              <div className="mt-6 flex flex-wrap gap-3">
-                <Link to="/apply">
-                  <Button>
-                    <FilePlus2 className="h-4 w-4" aria-hidden="true" />
-                    Apply for a loan
-                  </Button>
-                </Link>
-                <Link to="/applications">
-                  <Button variant="secondary">
-                    <ListChecks className="h-4 w-4" aria-hidden="true" />
-                    View my applications
-                  </Button>
-                </Link>
-              </div>
-            </>
-          ) : (
-            <>
-              <h2 className="font-display text-lg font-semibold text-ink">
-                Applications are waiting for review.
-              </h2>
-              <p className="mt-2 max-w-xl text-sm leading-relaxed text-muted">
-                Every application submitted across the platform shows up in the queue,
-                filterable by status.
-              </p>
-              <div className="mt-6">
-                <Link to="/staff/applications">
-                  <Button>
-                    <ListChecks className="h-4 w-4" aria-hidden="true" />
-                    Open application queue
-                  </Button>
-                </Link>
-              </div>
-            </>
-          )}
-        </Card>
-
-        <Card>
-          <h2 className="font-display text-base font-semibold text-ink">Account details</h2>
-          <dl className="mt-4 flex flex-col gap-4">
-            <div className="flex items-start gap-3">
-              <Mail className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
-              <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-muted">
-                  Email
-                </dt>
-                <dd className="text-sm font-medium text-ink">{user.email}</dd>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
-              <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-muted">
-                  Account type
-                </dt>
-                <dd className="mt-0.5">
-                  <Badge tone={user.role === "applicant" ? "navy" : "teal"}>{user.role}</Badge>
-                </dd>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-muted" aria-hidden="true" />
-              <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-muted">
-                  Member since
-                </dt>
-                <dd className="text-sm font-medium text-ink">
-                  {formatMemberSince(user.created_at)}
-                </dd>
-              </div>
-            </div>
-          </dl>
-        </Card>
+      <div className="mb-5 flex flex-wrap gap-2">
+        {STATUS_FILTERS.map((filter) => (
+          <button
+            key={filter.value}
+            onClick={() => setQueueFilter(filter.value)}
+            className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors
+              focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy
+              ${
+                queueFilter === filter.value
+                  ? "bg-navy text-white"
+                  : "bg-white text-muted border border-line hover:border-navy/30"
+              }`}
+          >
+            {filter.label}
+          </button>
+        ))}
       </div>
+
+      {error && <Alert tone="error">{error}</Alert>}
+
+      {applications === null && !error && (
+        <div className="flex justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-line border-t-navy" />
+        </div>
+      )}
+
+      {applications !== null && applications.length === 0 && (
+        <Card className="py-16 text-center">
+          <p className="text-sm text-muted">
+            {queueFilter === "pending"
+              ? "Nothing waiting on a decision right now."
+              : "No applications match this filter."}
+          </p>
+        </Card>
+      )}
+
+      {applications !== null && applications.length > 0 && (
+        <Card className="overflow-hidden p-0">
+          <table className="w-full text-left text-sm">
+            <thead className="border-b border-line bg-canvas">
+              <tr>
+                <th className="px-5 py-3 font-medium text-muted">Applicant</th>
+                <th className="px-5 py-3 font-medium text-muted">Amount</th>
+                <th className="px-5 py-3 font-medium text-muted">Purpose</th>
+                <th className="px-5 py-3 font-medium text-muted">Tenure</th>
+                <th className="px-5 py-3 font-medium text-muted">Risk</th>
+                <th className="px-5 py-3 font-medium text-muted">Recommendation</th>
+                <th className="px-5 py-3 font-medium text-muted">Submitted</th>
+                <th className="px-5 py-3 font-medium text-muted">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {applications.map((application) => (
+                <tr key={application.id} className="border-b border-line last:border-0">
+                  <td className="px-5 py-3">
+                    <Link
+                      to={`/applications/${application.id}`}
+                      className="font-semibold text-navy hover:underline"
+                    >
+                      {application.applicant_full_name ?? "—"}
+                    </Link>
+                  </td>
+                  <td className="px-5 py-3 font-mono text-ink">
+                    {formatCurrency(application.loan_amount)}
+                  </td>
+                  <td className="px-5 py-3 text-ink">
+                    {loanPurposeLabels[application.loan_purpose]}
+                  </td>
+                  <td className="px-5 py-3 text-ink">{application.loan_tenure_months} mo</td>
+                  <td className="px-5 py-3">
+                    <RiskCategoryBadge category={application.risk_category} />
+                  </td>
+                  <td className="px-5 py-3 text-muted">
+                    {application.recommendation ? RECOMMENDATION_LABELS[application.recommendation] : "—"}
+                  </td>
+                  <td className="px-5 py-3 text-muted">{formatDate(application.submitted_at)}</td>
+                  <td className="px-5 py-3">
+                    <LoanStatusBadge status={application.status} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      )}
     </AppShell>
   );
 }

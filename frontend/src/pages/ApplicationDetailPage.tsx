@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 
@@ -6,6 +6,7 @@ import { fetchLoanApplication } from "@/api/loans";
 import { useAuth } from "@/auth/AuthContext";
 import AppShell from "@/components/layout/AppShell";
 import LoanStatusBadge from "@/components/loans/LoanStatusBadge";
+import ReviewPanel from "@/components/loans/ReviewPanel";
 import RiskAssessmentCard from "@/components/loans/RiskAssessmentCard";
 import Alert from "@/components/ui/Alert";
 import Card from "@/components/ui/Card";
@@ -29,15 +30,22 @@ export default function ApplicationDetailPage() {
   const [application, setApplication] = useState<LoanApplicationDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadApplication = useCallback(async () => {
     if (!id) return;
-    fetchLoanApplication(id)
-      .then(setApplication)
-      .catch((err) =>
-        setError(getErrorMessage(err, "Could not load this application."))
-      );
+    try {
+      const data = await fetchLoanApplication(id);
+      setApplication(data);
+      setError(null);
+    } catch (err) {
+      setError(getErrorMessage(err, "Could not load this application."));
+    }
   }, [id]);
 
+  useEffect(() => {
+    loadApplication();
+  }, [loadApplication]);
+
+  const isStaff = user?.role === "staff" || user?.role === "admin";
   const backLink = user?.role === "applicant" ? "/applications" : "/staff/applications";
   const backLabel = user?.role === "applicant" ? "Back to your applications" : "Back to queue";
 
@@ -102,6 +110,14 @@ export default function ApplicationDetailPage() {
                   />
                 </div>
               )}
+
+            {/* Staff review actions — never rendered for applicants, even
+                though the current API response includes reviewer_name /
+                review_notes for any viewer with access to this application.
+                Masking that server-side (so applicants truly cannot see
+                internal staff notes in the network response) is a backend
+                change out of scope for this step and is flagged separately. */}
+            {isStaff && <ReviewPanel application={application} onUpdated={loadApplication} />}
 
             <Card className="mt-6">
               <h2 className="font-display text-base font-semibold text-ink">

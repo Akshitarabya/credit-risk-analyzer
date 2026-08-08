@@ -3,9 +3,16 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models.loan_application import LoanPurpose, LoanStatus, Recommendation, RiskCategory
+from app.models.loan_application import (
+    FinalDecision,
+    LoanPurpose,
+    LoanStatus,
+    Recommendation,
+    RiskCategory,
+)
 from app.schemas.applicant import ApplicantProfileOut, ApplicantProfileUpsert
 from app.schemas.prediction import RiskFactor
+
 
 MAX_TENURE_MONTHS = 360  # 30 years — generous upper bound, still a sanity limit
 
@@ -16,6 +23,7 @@ class LoanApplicationCreate(ApplicantProfileUpsert):
     applicant's financial profile (inherited from ApplicantProfileUpsert)
     plus the loan-specific fields below, submitted together in one call.
     """
+
     loan_amount: float = Field(gt=0)
     loan_purpose: LoanPurpose
     loan_tenure_months: int = Field(gt=0, le=MAX_TENURE_MONTHS)
@@ -38,6 +46,16 @@ class LoanApplicationOut(BaseModel):
     prediction_timestamp: datetime | None = None
     model_version: str | None = None
     top_risk_factors: list[RiskFactor] | None = None
+
+    # Applicant summary (Module 4)
+    applicant_full_name: str | None = None
+
+    # Staff review fields (Module 4)
+    reviewer_id: uuid.UUID | None = None
+    reviewer_name: str | None = None
+    reviewed_at: datetime | None = None
+    review_notes: str | None = None
+    final_decision: FinalDecision | None = None
 
     model_config = ConfigDict(from_attributes=True, protected_namespaces=())
 

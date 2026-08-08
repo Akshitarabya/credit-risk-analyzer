@@ -2,11 +2,18 @@ import type { ApplicantProfile, ApplicantProfileInput } from "@/types/applicant"
 
 export type LoanPurpose = "personal" | "auto" | "education" | "business" | "home";
 
-export type LoanStatus = "submitted" | "scored" | "approved" | "rejected" | "manual_review";
+export type LoanStatus =
+  | "submitted"
+  | "scored"
+  | "approved"
+  | "rejected"
+  | "manual_review";
 
 export type RiskCategory = "low" | "medium" | "high";
 
 export type Recommendation = "approved" | "review" | "reject";
+
+export type FinalDecision = "approved" | "rejected";
 
 export interface RiskFactor {
   feature: string;
@@ -28,6 +35,14 @@ export interface LoanApplication {
   prediction_timestamp: string | null;
   model_version: string | null;
   top_risk_factors: RiskFactor[] | null;
+
+  // Module 4 — staff review workflow
+  applicant_full_name: string | null;
+  reviewer_id: string | null;
+  reviewer_name: string | null;
+  reviewed_at: string | null;
+  review_notes: string | null;
+  final_decision: FinalDecision | null;
 }
 
 export interface LoanApplicationDetail extends LoanApplication {
@@ -48,4 +63,17 @@ export interface LoanPrediction {
   prediction_timestamp: string;
   model_version: string;
   top_risk_factors: RiskFactor[];
+}
+
+// Module 4 — staff review workflow request payloads
+
+export type DecisionAction = "approved" | "rejected" | "manual_review";
+
+export interface ReviewDecisionPayload {
+  decision: DecisionAction;
+  notes?: string;
+}
+
+export interface ReviewNotesPayload {
+  notes: string;
 }
