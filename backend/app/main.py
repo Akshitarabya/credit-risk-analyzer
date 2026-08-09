@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.routers import applicants, auth, loans
+from app.routers import applicants, auth, documents, loans
 
 app = FastAPI(
     title="Credit Risk Analyzer API",
@@ -28,6 +28,7 @@ app.add_middleware(
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(applicants.router, prefix="/api/v1")
 app.include_router(loans.router, prefix="/api/v1")
+app.include_router(documents.router, prefix="/api/v1")
 
 
 @app.get("/", tags=["Health"])

@@ -25,6 +25,12 @@ class Settings(BaseSettings):
     # --- Groq API (Module 4) ---
     groq_api_key: str | None = None
 
+    # --- Document storage (Module 5) ---
+    # Local filesystem, gitignored — see app/core/file_storage.py. Relative
+    # paths are resolved against the backend/ directory at runtime.
+    document_storage_dir: str = "storage/documents"
+    max_document_size_bytes: int = 10 * 1024 * 1024  # 10 MB
+
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False, extra="ignore")
 
 
