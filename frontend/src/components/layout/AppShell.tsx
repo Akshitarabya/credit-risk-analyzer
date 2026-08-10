@@ -20,10 +20,12 @@ const NAV_ITEMS_BY_ROLE: Record<string, { to: string; label: string }[]> = {
   staff: [
     { to: "/", label: "Dashboard" },
     { to: "/staff/applications", label: "Application queue" },
+    { to: "/staff/analytics", label: "Analytics" },
   ],
   admin: [
     { to: "/", label: "Dashboard" },
     { to: "/staff/applications", label: "Application queue" },
+    { to: "/staff/analytics", label: "Analytics" },
   ],
 };
 

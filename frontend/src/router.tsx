@@ -4,6 +4,7 @@ import ProtectedRoute from "@/auth/ProtectedRoute";
 import ApplicationDetailPage from "@/pages/ApplicationDetailPage";
 import ApplicationFormPage from "@/pages/ApplicationFormPage";
 import ApplicationStatusPage from "@/pages/ApplicationStatusPage";
+import AnalyticsDashboardPage from "@/pages/AnalyticsDashboardPage";
 import DashboardPage from "@/pages/DashboardPage";
 import LoginPage from "@/pages/LoginPage";
 import NotFoundPage from "@/pages/NotFoundPage";
@@ -56,6 +57,10 @@ export const router = createBrowserRouter([
       {
         path: "/staff/applications",
         element: <StaffDashboardPage />,
+      },
+      {
+        path: "/staff/analytics",
+        element: <AnalyticsDashboardPage />,
       },
     ],
   },

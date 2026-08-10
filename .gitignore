@@ -39,3 +39,12 @@ htmlcov/
 # Misc
 *.tmp
 *.swp
+
+
+# Frontend generated TypeScript/Vite artifacts
+frontend/*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
+
+# Local uploaded/generated storage
+backend/storage/
