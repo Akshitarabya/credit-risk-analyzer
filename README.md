@@ -88,7 +88,7 @@ directly, by design; see "Docker & PostgreSQL setup" below)
 | 6 | Admin/approval workflow | Covered by Module 4 — audited and confirmed no separate functionality was missing |
 | 7 | Analytics dashboard | Done |
 | 8 | Audit logging | Done |
-| 9 | Final testing, deployment readiness, documentation | Done (this document) |
+| 9 | Final testing, deployment readiness, documentation | Done |
 
 ## Project structure
 credit-risk-analyzer/
@@ -269,4 +269,3 @@ actual route definitions).
 - Move document storage to S3-compatible object storage for multi-instance
   deployment
 - CI pipeline (GitHub Actions) running the backend test suite on push
-- A deployed, publicly reachable demo instance (not currently deployed)
