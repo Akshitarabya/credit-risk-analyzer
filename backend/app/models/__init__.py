@@ -4,6 +4,7 @@ all tables on `Base.metadata` — this is what Alembic's autogenerate relies on.
 """
 from app.models.user import User, UserRole  # noqa: F401
 from app.models.applicant import Applicant, EmploymentStatus  # noqa: F401
+from app.models.audit_log import AuditAction, AuditLog, AuditResourceType  # noqa: F401
 from app.models.document import Document, DocumentStatus, DocumentType  # noqa: F401
 from app.models.loan_application import (  # noqa: F401
     FinalDecision,

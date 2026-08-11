@@ -25,6 +25,8 @@ from app.models.loan_application import LoanApplication
 from app.models.user import User, UserRole
 from app.services import ocr_service
 from app.services.ocr_service import OCRExtractionError
+from app.models.audit_log import AuditAction, AuditResourceType
+from app.services.audit_service import log_action
 
 
 class DuplicateDocumentTypeError(Exception):
@@ -106,6 +108,19 @@ def upload_document(
         ) from exc
 
     db.refresh(document)
+
+    # Own small commit, same reasoning as loan_service.create_loan_application:
+    # document.id isn't populated until after the insert above has committed.
+    log_action(
+        db,
+        actor=uploader,
+        action=AuditAction.DOCUMENT_UPLOADED,
+        resource_type=AuditResourceType.DOCUMENT,
+        resource_id=document.id,
+        details={"document_type": document_type.value, "status": document.status.value},
+    )
+    db.commit()
+
     return document
 
 
@@ -152,8 +167,21 @@ def delete_document(
             "This document has been verified and can no longer be deleted."
         )
 
+    # Captured before delete: the ORM object is expired/unusable for reads
+    # immediately after db.delete(), so anything the audit entry needs must
+    # be read out first.
+    deleted_document_type = document.document_type.value
+
     delete_document_file(loan_application_id, document.stored_filename)
     db.delete(document)
+    log_action(
+        db,
+        actor=current_user,
+        action=AuditAction.DOCUMENT_DELETED,
+        resource_type=AuditResourceType.DOCUMENT,
+        resource_id=document_id,
+        details={"document_type": deleted_document_type},
+    )
     db.commit()
 
 
@@ -182,6 +210,16 @@ def verify_document(
         document.verification_notes = notes
 
     db.add(document)
+    log_action(
+        db,
+        actor=reviewer,
+        action=AuditAction.DOCUMENT_VERIFIED
+        if new_status == DocumentStatus.VERIFIED
+        else AuditAction.DOCUMENT_REJECTED,
+        resource_type=AuditResourceType.DOCUMENT,
+        resource_id=document.id,
+        details={"document_type": document.document_type.value, "has_notes": notes is not None},
+    )
     db.commit()
     db.refresh(document)
     return document
