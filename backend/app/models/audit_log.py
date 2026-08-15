@@ -2,10 +2,9 @@
 Audit log model.
 
 Append-only by convention: nothing in this codebase ever updates or deletes
-an AuditLog row (no service function for it exists). `actor_id` is nullable
-to allow for a hypothetical future system-initiated action with no human
-actor, but every action integrated in this module always has one.
+an AuditLog row.
 """
+
 import enum
 import uuid
 from datetime import datetime, timezone
@@ -37,41 +36,69 @@ class AuditLog(Base):
     __tablename__ = "audit_logs"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+        UUID(as_uuid=True),
+        primary_key=True,
+        default=uuid.uuid4,
     )
+
     actor_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True
+        UUID(as_uuid=True),
+        ForeignKey("users.id"),
+        nullable=True,
+        index=True,
     )
+
     action: Mapped[AuditAction] = mapped_column(
-    Enum(
-        AuditAction,
-        name="audit_action",
-        native_enum=True,
-        values_callable=lambda enum_cls: [member.value for member in enum_cls],
-    ),
-    nullable=False,
-    index=True,
-)
-    action: Mapped[AuditAction] = mapped_column(
-    Enum(
-        AuditAction,
-        name="audit_action",
-        native_enum=True,
-        values_callable=lambda enum_cls: [member.value for member in enum_cls],
-    ),
-    nullable=False,
-    index=True,
-)
-    resource_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True, index=True)
-    # Small, non-sensitive metadata only (e.g. {"loan_amount": 15000, "risk_category": "low"}).
-    # Never populated with credentials, tokens, or raw document/OCR content —
-    # see audit_service.py's docstring for the boundary this module enforces.
-    details: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+        Enum(
+            AuditAction,
+            name="audit_action",
+            native_enum=True,
+            values_callable=lambda enum_class: [
+                member.value for member in enum_class
+            ],
+        ),
+        nullable=False,
+        index=True,
+    )
+
+    resource_type: Mapped[AuditResourceType] = mapped_column(
+        Enum(
+            AuditResourceType,
+            name="audit_resource_type",
+            native_enum=True,
+            values_callable=lambda enum_class: [
+                member.value for member in enum_class
+            ],
+        ),
+        nullable=False,
+        index=True,
+    )
+
+    resource_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        nullable=True,
+        index=True,
+    )
+
+    details: Mapped[dict | None] = mapped_column(
+        JSON,
+        nullable=True,
+    )
+
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False, index=True
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+        index=True,
     )
 
-    actor: Mapped["User | None"] = relationship(foreign_keys=[actor_id])
+    actor: Mapped["User | None"] = relationship(
+        foreign_keys=[actor_id]
+    )
 
-    def __repr__(self) -> str:  # pragma: no cover
-        return f"<AuditLog id={self.id} action={self.action} resource={self.resource_type}:{self.resource_id}>"
+    def __repr__(self) -> str:
+        return (
+            f"<AuditLog id={self.id} "
+            f"action={self.action} "
+            f"resource={self.resource_type}:{self.resource_id}>"
+        )

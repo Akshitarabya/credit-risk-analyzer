@@ -58,7 +58,7 @@ class Applicant(Base):
     EmploymentStatus,
     name="employment_status",
     native_enum=True,
-    values_callable=lambda enum_cls: [member.value for member in enum_cls],
+    values_callable=lambda enum_class: [member.value for member in enum_class],
 ),
         nullable=False,
     )

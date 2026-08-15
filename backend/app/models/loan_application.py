@@ -95,7 +95,7 @@ class LoanApplication(Base):
     LoanPurpose,
     name="loan_purpose",
     native_enum=True,
-    values_callable=lambda enum_cls: [member.value for member in enum_cls],
+    values_callable=lambda enum_class: [member.value for member in enum_class],
 ),
         nullable=False,
     )
