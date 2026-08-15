@@ -30,20 +30,57 @@ class Applicant(Base):
     id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
     )
+
     user_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), ForeignKey("users.id"), unique=True, nullable=False
+        UUID(as_uuid=True),
+        ForeignKey("users.id"),
+        unique=True,
+        nullable=False,
     )
-    full_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    date_of_birth: Mapped[date] = mapped_column(Date, nullable=False)
-    annual_income: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False)
+
+    full_name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+
+    date_of_birth: Mapped[date] = mapped_column(
+        Date,
+        nullable=False,
+    )
+
+    annual_income: Mapped[Decimal] = mapped_column(
+        Numeric(14, 2),
+        nullable=False,
+    )
+
     employment_status: Mapped[EmploymentStatus] = mapped_column(
-        Enum(EmploymentStatus, name="employment_status", native_enum=True), nullable=False
+        Enum(
+    EmploymentStatus,
+    name="employment_status",
+    native_enum=True,
+    values_callable=lambda enum_cls: [member.value for member in enum_cls],
+),
+        nullable=False,
     )
-    existing_debt: Mapped[Decimal] = mapped_column(Numeric(14, 2), nullable=False, default=0)
-    credit_history_years: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+
+    existing_debt: Mapped[Decimal] = mapped_column(
+        Numeric(14, 2),
+        nullable=False,
+        default=0,
+    )
+
+    credit_history_years: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), nullable=False
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
     )
+
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
@@ -52,7 +89,8 @@ class Applicant(Base):
     )
 
     loan_applications: Mapped[list["LoanApplication"]] = relationship(
-        back_populates="applicant", cascade="all, delete-orphan"
+        back_populates="applicant",
+        cascade="all, delete-orphan",
     )
 
     def __repr__(self) -> str:  # pragma: no cover

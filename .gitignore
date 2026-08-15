@@ -48,3 +48,4 @@ frontend/vite.config.d.ts
 
 # Local uploaded/generated storage
 backend/storage/
+

@@ -43,13 +43,25 @@ class AuditLog(Base):
         UUID(as_uuid=True), ForeignKey("users.id"), nullable=True, index=True
     )
     action: Mapped[AuditAction] = mapped_column(
-        Enum(AuditAction, name="audit_action", native_enum=True), nullable=False, index=True
-    )
-    resource_type: Mapped[AuditResourceType] = mapped_column(
-        Enum(AuditResourceType, name="audit_resource_type", native_enum=True),
-        nullable=False,
-        index=True,
-    )
+    Enum(
+        AuditAction,
+        name="audit_action",
+        native_enum=True,
+        values_callable=lambda enum_cls: [member.value for member in enum_cls],
+    ),
+    nullable=False,
+    index=True,
+)
+    action: Mapped[AuditAction] = mapped_column(
+    Enum(
+        AuditAction,
+        name="audit_action",
+        native_enum=True,
+        values_callable=lambda enum_cls: [member.value for member in enum_cls],
+    ),
+    nullable=False,
+    index=True,
+)
     resource_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True, index=True)
     # Small, non-sensitive metadata only (e.g. {"loan_amount": 15000, "risk_category": "low"}).
     # Never populated with credentials, tokens, or raw document/OCR content —
